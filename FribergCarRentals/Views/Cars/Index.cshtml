@@ -1,0 +1,62 @@
+﻿@model IEnumerable<FribergCarRentals.Models.Car>
+@inject IHttpContextAccessor HttpContextAccessor
+
+
+@{
+    ViewData["Title"] = "Cars";
+    var adminName = HttpContextAccessor.HttpContext.Session.GetString("AdminName");
+    var customerName = HttpContextAccessor.HttpContext.Session.GetString("CustomerName");
+}
+
+<h1>Car's List</h1>
+@if (adminName != null)
+{
+    <a asp-action="Create">Create New Car</a>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Brand)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Model)
+            </th>
+            <th>
+                Images
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Brand)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Model)
+            </td>
+            <td>
+                <img src="@item.ImageUrl" alt="Car Image" width="80" />
+            </td>
+            <td>
+                @if (adminName != null)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <span>|</span>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    <span>|</span>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                }
+                else
+                {
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    <a asp-controller="Bookings" asp-action="Create" class="btn btn-outline-dark" style="margin-left:50px">Boka</a>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

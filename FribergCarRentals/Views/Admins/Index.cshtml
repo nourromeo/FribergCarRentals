@@ -1,0 +1,28 @@
+﻿@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var adminName = HttpContextAccessor.HttpContext.Session.GetString("AdminName");
+    var customerName = HttpContextAccessor.HttpContext.Session.GetString("CustomerName");
+}
+
+<h2 class="display-4">Welcome Admin: @adminName</h2>
+
+<p  style="font-size:25px">You are now in the admin dashboard.</p>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <ul class="list-group mt-3">
+            <li class="list-group-item">
+                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Cars" asp-action="Index">Manage Cars</a>
+            </li>
+            <li class="list-group-item">
+                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Bookings" asp-action="Index">Manage Bookings</a>
+            </li>
+            <li class="list-group-item">
+                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Customers" asp-action="Index">Manage Customers</a>
+            </li>
+        </ul>
+    </div>
+</div>

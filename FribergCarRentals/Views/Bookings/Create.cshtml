@@ -1,0 +1,60 @@
+﻿@model Booking
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create Booking</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label">Starting from</label>
+                <input asp-for="StartDate" class="form-control" asp-format="{0:yyyy-MM-dd -- THH:mm}" type="datetime-local" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+
+            </div>
+
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label">Ending in</label>
+                <input asp-for="EndDate" class="form-control" asp-format="{0:yyyy-MM-dd -- THH:mm}" type="datetime-local" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+
+            @if (Model.CustomerId == 0)
+            {
+                <div class="form-group">
+                    <label asp-for="CustomerId" class="control-label">Customer</label>
+                    <select asp-for="CustomerId" class="form-control" asp-items="ViewBag.CustomerId"></select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="CustomerId" />
+            }
+
+            <div class="form-group">
+                <label asp-for="CarId" class="control-label">Car</label>
+                <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId"></select>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a href="javascript:history.back()">Back</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
