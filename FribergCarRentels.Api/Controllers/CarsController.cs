@@ -7,7 +7,6 @@ using System.Security.Claims;
 namespace FribergCarRentals.Api.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("api/[controller]")]
 
     public class CarsController : ControllerBase

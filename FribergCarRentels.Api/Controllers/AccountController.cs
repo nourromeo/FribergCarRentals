@@ -85,9 +85,6 @@ namespace FribergCarRentals.Api.Controllers
             });
         }
 
-
-
-
         // JWT token generator
         private string GenerateJwtToken(string email, string role, int id, string? fullName = null)
         {

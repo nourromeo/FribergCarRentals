@@ -11,31 +11,34 @@
 }
 
 @{
-    ViewData["Title"] = "Home Page";
+	ViewData["Title"] = "Home Page";
 }
 
 <div class="container mt-5 text-center">
-    <div class="p-5 bg-light rounded-4 shadow-sm">
-        <h1 class="display-4 fw-bold text-primary mb-4">
-            Welcome to Friberg Car Rentals
-        </h1>
+	<div class="p-5 bg-light rounded-4 shadow-sm">
+		<h1 class="display-4 fw-bold text-primary mb-4">
+			Welcome to Friberg Car Rentals
+		</h1>
 
-        @if(role == "Admin")
-        {
-            <a asp-controller="Admins" asp-action="Index" class="btn btn-outline-primary btn-lg px-5">
-                Go to Dashboard
-            </a>
-        }
-        @if (role == "Customer")
-        {
-            <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-primary btn-lg px-5">
-                View Cars
-            </a>
-        }
+		@if (role == "Admin")
+		{
+			<a asp-controller="Admins" asp-action="Index" class="btn btn-outline-primary btn-lg px-5">
+				Go to Dashboard
+			</a>
+		}
+		else
+		{
+			<a asp-controller="Cars" asp-action="Index" class="btn btn-outline-primary btn-lg px-5">
+				View Cars
+			</a>
+		}
 
-        <div class="mt-5">
-            <img src="~/images/logo.png" alt="Friberg Car Rentals" class="img-fluid mt-4 rounded" style="max-height: 320px;" />
-        </div>
-    </div>
+
+
+
+		<div class="mt-5">
+			<img src="~/images/logo.png" alt="Friberg Car Rentals" class="img-fluid mt-4 rounded" style="max-height: 320px;" />
+		</div>
+	</div>
 </div>
 

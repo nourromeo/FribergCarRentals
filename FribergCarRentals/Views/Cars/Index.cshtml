@@ -14,15 +14,17 @@
 @if (role == "Admin")
 {
     <h2>@role - Car's list</h2>
+    <p>
+        <a class="btn btn-secondary btn-group-sm" asp-action="Create">New Car</a>
+    </p>
+
 }
 else
 {
     <h2>@customerName - Car's list</h2>
 }
 
-<p>
-    <a class="btn btn-secondary btn-group-sm" asp-action="Create">New Car</a>
-</p>
+
 
 <hr />
 
@@ -65,7 +67,14 @@ else
                 else
                 {
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-                    <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@item.Id" class="btn btn-outline-dark" style="margin-left:50px">Boka</a>
+                    @if (role == "Customer")
+                    {
+                        <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@item.Id" class="btn btn-outline-dark" style="margin-left:50px">Book</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-dark" style="margin-left:50px">Book Now</a>
+                    }
                 }
             </td>
         </tr>

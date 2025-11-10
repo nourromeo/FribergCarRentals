@@ -53,11 +53,11 @@
     }
     else if (role == "Customer")
     {
-        <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@Model.Id" class="btn btn-primary">Book this car</a>
-        <a asp-action="Index" class="btn btn-secondary">Back</a>
+        <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@Model.Id" class="btn btn-primary">Book</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
     }
     else
     {
-        <a asp-action="Index" class="btn btn-secondary">Back</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
     }
 </div>

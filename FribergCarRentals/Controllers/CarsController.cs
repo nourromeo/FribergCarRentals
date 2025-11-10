@@ -22,7 +22,7 @@ namespace FribergCarRentals.Controllers
             if (!response.IsSuccessStatusCode)
                 return View("Error");
 
-            var cars = await response.Content.ReadFromJsonAsync<List<Car>>();
+            var cars = await response.Content.ReadFromJsonAsync<List<Car>>() ?? new List<Car>();
             ViewBag.CustomerName = TempData["CustomerName"];
 
             return View(cars);
