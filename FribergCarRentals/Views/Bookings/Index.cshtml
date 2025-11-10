@@ -1,44 +1,54 @@
 ﻿@inject IHttpContextAccessor HttpContextAccessor
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Booking's List";
-    var adminName = HttpContextAccessor.HttpContext.Session.GetString("AdminName");
-    var customerName = HttpContextAccessor.HttpContext.Session.GetString("CustomerName");
+	var session = HttpContextAccessor.HttpContext.Session;
+
+	var adminName = session.GetString("AdminName");
+	var customerName = session.GetString("CustomerName");
+	var role = session.GetString("Role");
+	var name = adminName ?? customerName;
 }
 
-<h1>Booking's List</h1>
-
-@if (adminName != null || customerName != null)
+@if (role == "Admin")
 {
-    <p>
-        <a asp-action="Create">Create New Booking</a>
-    </p>
+	<h2>@role - Booking's list</h2>
 }
+else
+{
+	<h2>@customerName - Booking's list</h2>
+}
+
+<p>
+	<a class="btn btn-secondary btn-group-sm" asp-action="Create">New Booking</a>
+</p>
+
+<hr />
 
 <table class="table">
-    <thead>
-        <tr>
-            <th>Starting from</th>
-            <th>Ending in</th>
-            <th>Customer</th>
-            <th>Car</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.StartDate</td>
-                <td>@item.EndDate</td>
-                <td>@($"{item.Customer.FirstName} {item.Customer.LastName}")</td>
-                <td>@($"{item.Car.Brand} {item.Car.Model}")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
+	<thead>
+		<tr>
+			<th>Starting from</th>
+			<th>Ending in</th>
+			<th>Customer</th>
+			<th>Car</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>@item.StartDate</td>
+				<td>@item.EndDate</td>
+				<td>@($"{item.Customer.FirstName} {item.Customer.LastName}")</td>
+				<td>@($"{item.Car.Brand} {item.Car.Model}")</td>
+				<td>
+					<a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+					<a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+					<a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+				</td>
+			</tr>
+		}
+	</tbody>
 </table>

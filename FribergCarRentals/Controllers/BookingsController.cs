@@ -1,198 +1,165 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using FribergCarRentals.Models;
-using FribergCarRentals.Repositories;
-using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Headers;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace FribergCarRentals.Controllers
 {
     public class BookingsController : Controller
     {
-        private readonly IBookingRepository _bookingRepository;
-        private readonly ICarRepository _carRepository;
-        private readonly ICustomerRepository _customerRepository;
+        private readonly HttpClient _httpClient;
 
-        public BookingsController(
-            IBookingRepository bookingRepository,
-            ICarRepository carRepository,
-            ICustomerRepository customerRepository)
+        public BookingsController(IHttpClientFactory httpClientFactory)
         {
-            _bookingRepository = bookingRepository;
-            _carRepository = carRepository;
-            _customerRepository = customerRepository;
+            _httpClient = httpClientFactory.CreateClient("api");
         }
 
-        public IActionResult Index()
+        // GET: Bookings
+        public async Task<IActionResult> Index()
         {
-            var customerIdStr = HttpContext.Session.GetString("CustomerId");
+            var response = await _httpClient.GetAsync("bookings");
 
-            if (!string.IsNullOrEmpty(customerIdStr))
-            {
-                int customerId = int.Parse(customerIdStr);
-                var bookings = _bookingRepository.GetBookingsByCustomerId(customerId);
-                return View(bookings);
-            }
+            if (!response.IsSuccessStatusCode)
+                return View("Error");
 
-            var allBookings = _bookingRepository.GetAll();
-            return View(allBookings);
+            var bookings = await response.Content.ReadFromJsonAsync<List<Booking>>() ?? new List<Booking>();
+
+            return View(bookings);
         }
 
-
-        public IActionResult Details(int? id)
+        // GET: Bookings/Details/5
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null) return NotFound();
+            var response = await _httpClient.GetAsync($"bookings/{id}");
 
-            var booking = _bookingRepository.GetById(id.Value);
-            if (booking == null) return NotFound();
+            if (!response.IsSuccessStatusCode)
+                return NotFound();
 
+            var booking = await response.Content.ReadFromJsonAsync<Booking>();
             return View(booking);
         }
 
-        public IActionResult Create()
+
+        // GET: Bookings/Create
+        public async Task<IActionResult> Create()
         {
-            var customerIdStr = HttpContext.Session.GetString("CustomerId");
-            var adminName = HttpContext.Session.GetString("AdminName");
+            var carsResponse = await _httpClient.GetAsync("cars");
+            if (!carsResponse.IsSuccessStatusCode)
+                throw new Exception($"Cars API returned {carsResponse.StatusCode}");
 
-            ViewData["CarId"] = new SelectList(_carRepository.GetAll(), "Id", "Model");
+            var cars = await carsResponse.Content.ReadFromJsonAsync<List<Car>>() ?? new List<Car>();
+            ViewData["CarId"] = new SelectList(cars, "Id", "CarFullName");
 
-            if (!string.IsNullOrEmpty(customerIdStr))
+            var role = HttpContext.Session.GetString("Role");
+            var customerId = HttpContext.Session.GetString("CustomerId");
+            var customerName = HttpContext.Session.GetString("CustomerName");
+
+            // Customer
+            if (role == "Customer")
             {
-                int customerId = int.Parse(customerIdStr);
-                var booking = new Booking
-                {
-                    CustomerId = customerId,
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddDays(1)
-                };
-                return View(booking);
+                if (string.IsNullOrEmpty(customerId) || string.IsNullOrEmpty(customerName))
+                    return RedirectToAction("Login", "Account");
+
+                ViewData["CustomerId"] = new SelectList(
+                    new List<SelectListItem>
+                    {
+                new SelectListItem { Value = customerId, Text = customerName }
+                    },
+                    "Value", "Text"
+                );
             }
 
-            if (!string.IsNullOrEmpty(adminName))
+            // Admin
+            else if (role == "Admin")
             {
-                ViewData["CustomerId"] = new SelectList(_customerRepository.GetAll(), "Id", "Email");
-                var booking = new Booking
-                {
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddDays(1)
-                };
-                return View(booking);
+                var customersResponse = await _httpClient.GetAsync("customers");
+                if (!customersResponse.IsSuccessStatusCode)
+                    throw new Exception($"Customers API returned {customersResponse.StatusCode}");
+
+                var customers = await customersResponse.Content.ReadFromJsonAsync<List<Customer>>() ?? new List<Customer>();
+                ViewData["CustomerId"] = new SelectList(customers, "Id", "CustomerFullName");
             }
 
-            return RedirectToAction("Login", "Account");
+            return View(new Booking());
         }
 
 
-
+        // POST: Bookings/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,StartDate,EndDate,CustomerId,CarId")] Booking booking)
+        public async Task<IActionResult> Create(Booking booking)
         {
-            if (ModelState.IsValid)
-            {
-                _bookingRepository.Add(booking);
+            var response = await _httpClient.PostAsJsonAsync("bookings", booking);
+
+            if (response.IsSuccessStatusCode)
                 return RedirectToAction(nameof(Index));
-            }
 
-            ViewData["CarId"] = new SelectList(_carRepository.GetAll(), "Id", "Model", booking.CarId);
-
-            if (booking.CustomerId == 0)
-                ViewData["CustomerId"] = new SelectList(_customerRepository.GetAll(), "Id", "Email");
-
-            return View(booking);
-        }
-
-
-
-        public IActionResult Edit(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var booking = _bookingRepository.GetById(id.Value);
-            if (booking == null) return NotFound();
-
-            ViewData["CarId"] = new SelectList(_carRepository.GetAll(), "Id", "Model", booking.CarId);
-            ViewData["CustomerId"] = new SelectList(_customerRepository.GetAll(), "Id", "Email", booking.CustomerId);
-            return View(booking);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("Id,StartDate,EndDate,CustomerId,CarId")] Booking booking, string Customer_Email)
-        {
-            if (id != booking.Id) return NotFound();
-
-            if (ModelState.IsValid)
-            {
-                var existingBooking = _bookingRepository.GetById(booking.Id);
-                if (existingBooking == null) return NotFound();
-
-                existingBooking.StartDate = booking.StartDate;
-                existingBooking.EndDate = booking.EndDate;
-                existingBooking.CarId = booking.CarId;
-
-                var customer = _customerRepository.GetById(existingBooking.CustomerId);
-                if (customer != null)
-                {
-                    customer.Email = Customer_Email;
-                    _customerRepository.Update(customer);
-                }
-
-                _bookingRepository.Update(existingBooking);
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewData["CarId"] = new SelectList(_carRepository.GetAll(), "Id", "Model", booking.CarId);
-            return View(booking);
-        }
-
-        public IActionResult Delete(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var booking = _bookingRepository.GetById(id.Value);
-            if (booking == null) return NotFound();
-
-            var customerIdStr = HttpContext.Session.GetString("CustomerId");
-            var adminName = HttpContext.Session.GetString("AdminName");
-
-            if (!string.IsNullOrEmpty(customerIdStr))
-            {
-                int customerId = int.Parse(customerIdStr);
-                if (booking.CustomerId != customerId || booking.StartDate <= DateTime.Now)
-                {
-                    ViewBag.Error = "You can not delete old or current booking";
-                }
-            }
-
-            return View(booking);
-        }
-
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var booking = _bookingRepository.GetById(id);
-            if (booking == null) return NotFound();
-
-            var customerIdStr = HttpContext.Session.GetString("CustomerId");
-            var adminName = HttpContext.Session.GetString("AdminName");
-
-            if (!string.IsNullOrEmpty(customerIdStr))
-            {
-                int customerId = int.Parse(customerIdStr);
-                if (booking.CustomerId != customerId || booking.StartDate <= DateTime.Now)
-                {
-                    ViewBag.Error = "You can not delete old or current booking";
-                    return View("Delete", booking);
-                }
-            }
-
-            _bookingRepository.Delete(booking);
             return RedirectToAction(nameof(Index));
         }
 
+
+        // GET: Bookings/Edit/5
+        public async Task<IActionResult> Edit(int id)
+        {
+            var response = await _httpClient.GetAsync($"bookings/{id}");
+
+            if (!response.IsSuccessStatusCode)
+                return NotFound();
+
+            var booking = await response.Content.ReadFromJsonAsync<Booking>();
+
+            var carsResponse = await _httpClient.GetAsync("cars");
+            if (carsResponse.IsSuccessStatusCode)
+            {
+                var cars = await carsResponse.Content.ReadFromJsonAsync<List<Car>>();
+                ViewData["CarId"] = new SelectList(cars, "Id", "CarFullName", booking.CarId);
+            }
+
+            return View(booking);
+        }
+
+
+        // POST: Bookings/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Booking booking)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"bookings/{id}", booking);
+
+            if (response.IsSuccessStatusCode)
+                return RedirectToAction(nameof(Index));
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // GET: Bookings/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var response = await _httpClient.GetAsync($"bookings/{id}");
+
+            if (!response.IsSuccessStatusCode)
+                return NotFound();
+
+            var booking = await response.Content.ReadFromJsonAsync<Booking>();
+            return View(booking);
+        }
+
+
+        // POST: Bookings/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var response = await _httpClient.DeleteAsync($"bookings/{id}");
+
+            if (response.IsSuccessStatusCode)
+                return RedirectToAction(nameof(Index));
+
+            return View("Error");
+        }
 
     }
 }

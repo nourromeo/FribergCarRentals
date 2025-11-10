@@ -1,35 +1,63 @@
 ﻿@model FribergCarRentals.Models.Car
+@inject IHttpContextAccessor HttpContextAccessor
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Car's Details";
+    var session = HttpContextAccessor.HttpContext.Session;
+    var adminName = session.GetString("AdminName");
+    var customerName = session.GetString("CustomerName");
+    var role = session.GetString("Role");
+    var name = adminName ?? customerName;
 }
 
-<h1>Car's Details</h1>
+@{
+    ViewData["Title"] = "Car Details";
+}
+
+<h2>
+    @(role == "Admin" ? $"{role} - Details" : $"{customerName} - Details")
+</h2>
+
+<hr />
 
 <div>
-    <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Brand)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Brand)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(modelItem => modelItem.Brand)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Model)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Model)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(modelItem => modelItem.Model)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
             Image
         </dt>
-        <dd class = "col-sm-10">
-            <img src="@Model.ImageUrl" alt="Car Image" width="80" />
+        <dd class="col-sm-10">
+            <img src="@Model.ImageUrl" alt="Car Image" width="120" style="border-radius: 10px;" />
         </dd>
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back</a>
+    @if (role == "Admin")
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    }
+    else if (role == "Customer")
+    {
+        <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@Model.Id" class="btn btn-primary">Book</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    }
+    else
+    {
+        <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    }
 </div>

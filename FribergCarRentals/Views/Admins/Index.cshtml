@@ -1,28 +1,48 @@
 ﻿@inject IHttpContextAccessor HttpContextAccessor
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Admin Dashboard";
-    var adminName = HttpContextAccessor.HttpContext.Session.GetString("AdminName");
-    var customerName = HttpContextAccessor.HttpContext.Session.GetString("CustomerName");
+	var session = HttpContextAccessor.HttpContext.Session;
+
+	var adminName = session.GetString("AdminName");
+	var role = session.GetString("Role");
 }
 
-<h2 class="display-4">Welcome Admin: @adminName</h2>
+@{
+	ViewData["Title"] = "Admin Dashboard";
+}
 
-<p  style="font-size:25px">You are now in the admin dashboard.</p>
+<div class="container mt-5">
+	<div class="text-center mb-5">
+		<h1 class="display-5 fw-bold text-primary">Welcome, @adminName</h1>
+		<p class="lead text-muted">You are now in the <strong>Admin Dashboard</strong>.</p>
+		<hr class="my-4 w-50 mx-auto" />
+	</div>
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <ul class="list-group mt-3">
-            <li class="list-group-item">
-                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Cars" asp-action="Index">Manage Cars</a>
-            </li>
-            <li class="list-group-item">
-                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Bookings" asp-action="Index">Manage Bookings</a>
-            </li>
-            <li class="list-group-item">
-                <a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Customers" asp-action="Index">Manage Customers</a>
-            </li>
-        </ul>
-    </div>
+	<div class="row justify-content-center">
+		<div class="col-md-6">
+			<div class="card shadow-lg border-0 rounded-4">
+				<div class="card-body">
+					<h4 class="card-title mb-4 text-center text-secondary">Management Panel</h4>
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item">
+							<a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Cars" asp-action="Index">
+								Manage Cars
+							</a>
+						</li>
+						<li class="list-group-item">
+							<a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Bookings" asp-action="Index">
+								Manage Bookings
+							</a>
+						</li>
+						<li class="list-group-item">
+							<a class="nav-link btn btn-outline-primary ms-2" style="color: black" asp-controller="Customers" asp-action="Index">
+								Manage Customers
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

@@ -1,18 +1,32 @@
 ﻿@model IEnumerable<FribergCarRentals.Models.Car>
 @inject IHttpContextAccessor HttpContextAccessor
-
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Cars";
-    var adminName = HttpContextAccessor.HttpContext.Session.GetString("AdminName");
-    var customerName = HttpContextAccessor.HttpContext.Session.GetString("CustomerName");
+    var session = HttpContextAccessor.HttpContext.Session;
+
+    var adminName = session.GetString("AdminName");
+    var customerName = session.GetString("CustomerName");
+    var role = session.GetString("Role");
+    var name = adminName ?? customerName;
 }
 
-<h1>Car's List</h1>
-@if (adminName != null)
+@if (role == "Admin")
 {
-    <a asp-action="Create">Create New Car</a>
+    <h2>@role - Car's list</h2>
+    <p>
+        <a class="btn btn-secondary btn-group-sm" asp-action="Create">New Car</a>
+    </p>
+
 }
+else
+{
+    <h2>@customerName - Car's list</h2>
+}
+
+
+
+<hr />
 
 <table class="table">
     <thead>
@@ -53,7 +67,14 @@
                 else
                 {
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a>
-                    <a asp-controller="Bookings" asp-action="Create" class="btn btn-outline-dark" style="margin-left:50px">Boka</a>
+                    @if (role == "Customer")
+                    {
+                        <a asp-controller="Bookings" asp-action="Create" asp-route-carId="@item.Id" class="btn btn-outline-dark" style="margin-left:50px">Book</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-dark" style="margin-left:50px">Book Now</a>
+                    }
                 }
             </td>
         </tr>

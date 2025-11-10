@@ -1,10 +1,21 @@
 ﻿@model Booking
+@inject IHttpContextAccessor HttpContextAccessor
+@using System.Security.Claims
+
+@{
+    var session = HttpContextAccessor.HttpContext.Session;
+
+    var adminName = session.GetString("AdminName");
+    var customerName = session.GetString("CustomerName");
+    var role = session.GetString("Role");
+    var name = adminName ?? customerName;
+}
 
 @{
     ViewData["Title"] = "Edit";
 }
 
-<h1>Edit a Booking</h1>
+<h2>@customerName - Edit</h2>
 
 <hr />
 <div class="row">
@@ -23,24 +34,17 @@
                 <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label class="control-label">Customer's email</label>
-<input type="email" name="Customer_Email" class="form-control" value="@Model.Customer.Email" />
-            </div>
-
-            <div class="form-group">
                 <label asp-for="CarId" class="control-label">Car</label>
                 <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId"></select>
                 <span asp-validation-for="CarId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
+                <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back</a>
 </div>
 
 @section Scripts {
