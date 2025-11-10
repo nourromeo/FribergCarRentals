@@ -1,10 +1,28 @@
 ﻿@model FribergCarRentals.Models.Car
+@inject IHttpContextAccessor HttpContextAccessor
+@using System.Security.Claims
+
+@{
+    var session = HttpContextAccessor.HttpContext.Session;
+
+    var adminName = session.GetString("AdminName");
+    var customerName = session.GetString("CustomerName");
+    var role = session.GetString("Role");
+    var name = adminName ?? customerName;
+}
 
 @{
     ViewData["Title"] = "Edit";
 }
 
-<h1>Edit Car's Informations</h1>
+@if (role == "Admin")
+{
+    <h2>@role - Edit</h2>
+}
+else
+{
+    <h2>@customerName - Edit</h2>
+}
 
 <hr />
 <div class="row">

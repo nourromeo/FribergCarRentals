@@ -1,18 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using FribergCarRentals.Repositories;
+using FribergCarRentals.Data.Dtos;
 using FribergCarRentals.Models;
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication;
 
 namespace FribergCarRentals.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IAdminRepository _adminRepo;
-        private readonly ICustomerRepository _customerRepo;
+        private readonly HttpClient _httpClient;
 
-        public AccountController(IAdminRepository adminRepo, ICustomerRepository customerRepo)
+        public AccountController(IHttpClientFactory httpClientFactory)
         {
-            _adminRepo = adminRepo;
-            _customerRepo = customerRepo;
+            _httpClient = httpClientFactory.CreateClient("api");
         }
 
         [HttpGet]
@@ -22,54 +23,102 @@ namespace FribergCarRentals.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password)
         {
-            var admin = _adminRepo.GetByEmailAndPassword(email, password);
-            if (admin != null)
+            var loginDto = new LoginDto
             {
-                HttpContext.Session.SetString("AdminName", admin.Email);
+                Email = email,
+                Password = password
+            };
+
+            var content = new StringContent(JsonSerializer.Serialize(loginDto), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("account/login", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Error = "Invalid email or password.";
+                return View();
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<LoginResponse>(responseBody, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (result == null)
+            {
+                ViewBag.Error = "Unexpected server response.";
+                return View();
+            }
+
+            // Save JWT and user info in Session
+            HttpContext.Session.SetString("JwtToken", result.Token);
+            HttpContext.Session.SetString("Role", result.Role);
+
+            if (result.Role == "Admin")
+            {
+                HttpContext.Session.SetString("AdminName", result.Email);
                 return RedirectToAction("Index", "Admins");
             }
-
-            var customer = _customerRepo.GetByEmailAndPassword(email, password);
-            if (customer != null)
+            else if (result.Role == "Customer")
             {
-                HttpContext.Session.SetString("CustomerName", customer.FirstName);
-                HttpContext.Session.SetString(key: "CustomerId", customer.Id.ToString()); 
-                return RedirectToAction("Index", "Cars", new { customerId = customer.Id });
+                HttpContext.Session.SetString("CustomerName", result.Name);
+                HttpContext.Session.SetString("CustomerId", result.Id.ToString());
+                return RedirectToAction("Index", "Cars");
             }
 
-            ViewBag.Error = "Invalid email or password.";
+            ViewBag.Error = "Unexpected role.";
             return View();
         }
-
-
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
-
-
         [HttpGet]
         public IActionResult Register()
         {
-            Login();
-
             return View();
         }
 
         [HttpPost]
-        public IActionResult Register(Customer customer)
+        public async Task<IActionResult> Register(Customer customer)
         {
-            _customerRepo.Add(customer);
-            HttpContext.Session.SetString("CustomerName", customer.FirstName);
-            HttpContext.Session.SetString("CustomerId", customer.Id.ToString()); 
-            return RedirectToAction("Index", "Cars", new { customerId = customer.Id });
+            if (!ModelState.IsValid)
+                return View(customer);
+
+            var content = new StringContent(JsonSerializer.Serialize(customer), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("account/register", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Error = "Registration failed. Try again.";
+                return View(customer);
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<LoginResponse>(responseBody, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (result == null)
+            {
+                ViewBag.Error = "Unexpected server response.";
+                return View(customer);
+            }
+
+            HttpContext.Session.SetString("JwtToken", result.Token);
+            HttpContext.Session.SetString("Role", result.Role);
+            HttpContext.Session.SetString("CustomerName", result.Name);
+            HttpContext.Session.SetString("CustomerId", result.Id.ToString());
+
+            Console.WriteLine($"TOKEN STORED: {result.Token}");
+
+            return RedirectToAction("Index", "Cars");
         }
-
-
 
     }
 }

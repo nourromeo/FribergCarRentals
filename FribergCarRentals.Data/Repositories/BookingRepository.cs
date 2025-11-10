@@ -15,47 +15,47 @@ namespace FribergCarRentals.Repositories
             _context = context;
         }
 
-        public List<Booking> GetAll()
+        public async Task<List<Booking>> GetAllAsync()
         {
-            return _context.Bookings
+            return await _context.Bookings
                 .Include(b => b.Car)
                 .Include(b => b.Customer)
-                .ToList();
+                .ToListAsync();
         }
 
-        public Booking? GetById(int id)
+        public async Task<Booking?> GetByIdAsync(int id)
         {
-            return _context.Bookings
+            return await _context.Bookings
                 .Include(b => b.Car)
                 .Include(b => b.Customer)
-                .FirstOrDefault(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
-        public void Add(Booking booking)
+        public async Task AddAsync(Booking booking)
         {
-            _context.Bookings.Add(booking);
-            _context.SaveChanges();
+            await _context.Bookings.AddAsync(booking);
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(Booking booking)
+        public async Task UpdateAsync(Booking booking)
         {
             _context.Bookings.Update(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(Booking booking)
+        public async Task DeleteAsync(Booking booking)
         {
             _context.Bookings.Remove(booking);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public List<Booking> GetBookingsByCustomerId(int customerId)
+        public async Task<List<Booking>> GetBookingsByCustomerIdAsync(int customerId)
         {
-            return _context.Bookings
+            return await _context.Bookings
                 .Include(b => b.Car)
                 .Include(b => b.Customer)
                 .Where(b => b.CustomerId == customerId)
-                .ToList();
+                .ToListAsync();
         }
 
     }

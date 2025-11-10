@@ -1,5 +1,6 @@
-﻿using FribergCarRentals.Models;
-using FribergCarRentals.Data;
+﻿using FribergCarRentals.Data;
+using FribergCarRentals.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,32 +15,33 @@ namespace FribergCarRentals.Repositories
             _context = context;
         }
 
-        public List<Car> GetAll()
+        public async Task<List<Car>> GetAllAsync()
         {
-            return _context.Cars.ToList();
+            return await _context.Cars.ToListAsync();
         }
 
-        public Car? GetById(int id)
+        public async Task<Car?> GetByIdAsync(int id)
         {
-            return _context.Cars.FirstOrDefault(c => c.Id == id);
+            return await _context.Cars.FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public void Add(Car car)
+        public async Task AddAsync(Car car)
         {
-            _context.Cars.Add(car);
-            _context.SaveChanges();
+            await _context.Cars.AddAsync(car);
+            await _context.SaveChangesAsync();
         }
 
-        public void Update(Car car)
+        public async Task UpdateAsync(Car car)
         {
             _context.Cars.Update(car);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(Car car)
+        public async Task DeleteAsync(Car car)
         {
             _context.Cars.Remove(car);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
+
     }
 }

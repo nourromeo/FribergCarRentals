@@ -1,6 +1,7 @@
 ﻿using FribergCarRentals.Models;
 using FribergCarRentals.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRentals.Repositories
 {
@@ -13,37 +14,38 @@ namespace FribergCarRentals.Repositories
             _context = context;
         }
 
-        public List<Customer> GetAll()
+        public async Task<List<Customer>> GetAllAsync()
         {
-            return _context.Customers.ToList();
+            return await _context.Customers.ToListAsync();
         }
 
-        public Customer? GetById(int id)
+        public async Task<Customer?> GetByIdAsync(int id)
         {
-            return _context.Customers.FirstOrDefault(c => c.Id == id);
+            return await _context.Customers.FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public void Add(Customer customer)
+        public async Task AddAsync(Customer customer)
         {
-            _context.Customers.Add(customer);
+            await _context.Customers.AddAsync(customer);
             _context.SaveChanges();
         }
 
-        public void Update(Customer customer)
+        public async Task UpdateAsync(Customer customer)
         {
             _context.Customers.Update(customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Delete(Customer customer)
+        public async Task DeleteAsync(Customer customer)
         {
             _context.Customers.Remove(customer);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public Customer? GetByEmailAndPassword(string email, string password)
+        public async Task<Customer?> GetByEmailAsync(string email)
         {
-            return _context.Customers.FirstOrDefault(c => c.Email == email && c.Password == password);
+            return await _context.Customers
+                .FirstOrDefaultAsync(c => c.Email == email);
         }
 
     }

@@ -11,5 +11,7 @@
         // One car > many bookings (One-to-Many)
         public List<Booking> Bookings { get; set; } = new();
 
+        public string CarFullName => $"{Brand} {Model}";
+
     }
 }

@@ -2,12 +2,12 @@
 {
     public interface IBookingRepository
     {
-        List<Booking> GetAll();
-        Booking? GetById(int id);
-        void Add(Booking booking);
-        void Update(Booking booking);
-        void Delete(Booking booking);
-        List<Booking> GetBookingsByCustomerId(int customerId);
+        Task<List<Booking>> GetAllAsync();
+        Task<Booking?> GetByIdAsync(int id);
+        Task AddAsync(Booking booking);
+        Task UpdateAsync(Booking booking);
+        Task DeleteAsync(Booking booking);
+        Task<List<Booking>> GetBookingsByCustomerIdAsync(int customerId);
 
     }
 }

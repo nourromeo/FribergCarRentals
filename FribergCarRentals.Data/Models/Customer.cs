@@ -11,6 +11,7 @@
         // connection to bookings
         public List<Booking> Bookings { get; set; } = new();
 
+        public string CustomerFullName => $"{FirstName} {LastName}";
 
     }
 }

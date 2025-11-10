@@ -1,6 +1,6 @@
 ﻿using FribergCarRentals.Models;
 using FribergCarRentals.Data;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRentals.Repositories
 {
@@ -13,10 +13,11 @@ namespace FribergCarRentals.Repositories
             _context = context;
         }
 
-        public Admin? GetByEmailAndPassword(string email, string password)
+        // البحث عن الأدمن عبر البريد فقط
+        public async Task<Admin?> GetByEmailAsync(string email)
         {
-            return _context.Admins.FirstOrDefault(a => a.Email == email && a.Password == password);
+            return await _context.Admins.FirstOrDefaultAsync(a => a.Email == email);
         }
+
     }
 }
-
