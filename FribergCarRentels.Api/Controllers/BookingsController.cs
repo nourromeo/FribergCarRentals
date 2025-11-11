@@ -10,19 +10,15 @@ using Microsoft.AspNetCore.Http;
 namespace FribergCarRentals.Api.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Admin,Customer")]
     [Route("api/[controller]")]
-    // [Authorize] // Requires JWT for all endpoints
     public class BookingsController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepo;
         private readonly ICarRepository _carRepo;
         private readonly ICustomerRepository _customerRepo;
 
-        public BookingsController(
-            IBookingRepository bookingRepo,
-            ICarRepository carRepo,
-            ICustomerRepository customerRepo)
+        public BookingsController(IBookingRepository bookingRepo, ICarRepository carRepo, ICustomerRepository customerRepo)
         {
             _bookingRepo = bookingRepo;
             _carRepo = carRepo;
@@ -31,12 +27,11 @@ namespace FribergCarRentals.Api.Controllers
 
         // GET: api/bookings
         // Admin gets all bookings, Customer gets only his
-        [Authorize(Roles = "Admin,Customer")]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (!string.IsNullOrEmpty(role) && role == "Customer" && int.TryParse(customerIdClaim, out var cid))
             {
@@ -51,7 +46,6 @@ namespace FribergCarRentals.Api.Controllers
 
         // GET: api/bookings/{id}
         // Admin gets any booking, Customer gets only his
-        [Authorize(Roles = "Admin,Customer")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
@@ -59,8 +53,8 @@ namespace FribergCarRentals.Api.Controllers
             if (booking == null)
                 return NotFound("Booking not found.");
 
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (role == "Customer" && customerIdClaim != null && booking.CustomerId.ToString() != customerIdClaim)
                 return StatusCode(StatusCodes.Status403Forbidden, "You can only access your own bookings.");
@@ -71,7 +65,6 @@ namespace FribergCarRentals.Api.Controllers
         // POST: api/bookings
         // Only Admin or Customer for himself.
         [HttpPost]
-        [Authorize(Roles = "Admin,Customer")]
         public async Task<IActionResult> CreateAsync([FromBody] Booking booking)
         {
             if (!ModelState.IsValid || booking.StartDate >= booking.EndDate)
@@ -108,13 +101,13 @@ namespace FribergCarRentals.Api.Controllers
                 return NotFound(new { message = "Booking not found." });
 
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (role == "Customer" && !int.TryParse(userIdClaim, out var uidParsed))
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only edit your own bookings." });
 
             if (role == "Customer" && booking.CustomerId.ToString() != userIdClaim)
-                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You can only edit your own bookings." });
+                return StatusCode(statusCode: StatusCodes.Status403Forbidden, new { message = "You can only edit your own bookings." });
 
             if (booking.StartDate <= DateTime.Now)
                 return BadRequest(new { message = "You cannot edit current or past bookings." });
@@ -128,17 +121,16 @@ namespace FribergCarRentals.Api.Controllers
         }
 
         // DELETE: api/bookings/{id}
-        // Delete booking (Admin or booking owner only)
+        // Delete booking (Admin or booking owner for his)
         [HttpDelete("{id}")]
-        // [Authorize(Roles = "Admin,Customer")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             var booking = await _bookingRepo.GetByIdAsync(id);
             if (booking == null)
                 return NotFound("Booking not found.");
 
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var role = User.FindFirstValue(ClaimTypes.Role); 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (role == "Customer" && !int.TryParse(userIdClaim, out var uidParsed))
                 return StatusCode(StatusCodes.Status403Forbidden, "You can only delete your own bookings.");
@@ -153,28 +145,16 @@ namespace FribergCarRentals.Api.Controllers
             return Ok(new { message = "Booking deleted successfully" });
         }
 
-        // TEST: api/bookings/test-auth
-        [HttpGet("test-auth")]
-        public IActionResult TestAuth()
+        // TEST: api/bookings/test-current-user
+        [HttpGet("test-current-user")]
+        [AllowAnonymous]
+        public IActionResult GetCurrentUser()
         {
-            var fullName = User.FindFirst("FullName")?.Value;
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var fullName = User.FindFirstValue("FullName");
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             return Ok(new { fullName, role, id });
-        }
-
-        // DEBUG: api/bookings/debug-header
-        [HttpGet("debug-header")]
-        [AllowAnonymous] // allow calling from browser without JWT so you can test both flows
-        public IActionResult DebugAuthHeader()
-        {
-            // Return raw Authorization header value seen by the API
-            if (Request.Headers.TryGetValue("Authorization", out var value))
-            {
-                return Ok(new { Authorization = value.ToString() });
-            }
-            return Ok(new { Authorization = (string?)null });
         }
 
     }

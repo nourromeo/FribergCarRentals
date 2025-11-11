@@ -26,14 +26,14 @@ namespace FribergCarRentals.Api.Controllers
 
         // POST: api/Account/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             // Check if user is Admin
-            var admin = await _adminRepo.GetByEmailAsync(model.Email);
-            if (admin != null && BCrypt.Net.BCrypt.Verify(model.Password, admin.Password))
+            var admin = await _adminRepo.GetByEmailAsync(loginDto.Email);
+            if (admin != null && BCrypt.Net.BCrypt.Verify(loginDto.Password, admin.Password))
             {
                 var token = GenerateJwtToken(admin.Email, "Admin", admin.Id);
                 return Ok(new
@@ -45,8 +45,8 @@ namespace FribergCarRentals.Api.Controllers
             }
 
             // Check if user is Customer
-            var customer = await _customerRepo.GetByEmailAsync(model.Email);
-            if (customer != null && BCrypt.Net.BCrypt.Verify(model.Password, customer.Password))
+            var customer = await _customerRepo.GetByEmailAsync(loginDto.Email);
+            if (customer != null && BCrypt.Net.BCrypt.Verify(loginDto.Password, customer.Password))
             {
                 var token = GenerateJwtToken(customer.Email, "Customer", customer.Id, customer.CustomerFullName);
                 return Ok(new

@@ -24,9 +24,9 @@ namespace FribergCarRentals.Api.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var adminEmail = User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown";
+            var adminEmail = User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
 
-            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Unknown";
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "Unknown";
 
             return Ok(new
             {

@@ -29,8 +29,8 @@ namespace FribergCarRentals.Api.Controllers
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             var car = await _carRepository.GetByIdAsync(id);
-            if (car == null) 
-                return NotFound();
+            if (car == null)
+                return NotFound(value: new { message = "Car not found." });
             return Ok(car);
         }
 
@@ -50,7 +50,7 @@ namespace FribergCarRentals.Api.Controllers
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] Car car)
         {
             if (id != car.Id)
-                return BadRequest();
+                return BadRequest(new { message = "Car ID mismatch." });
 
             await _carRepository.UpdateAsync(car);
             return NoContent();
@@ -62,7 +62,7 @@ namespace FribergCarRentals.Api.Controllers
         {
             var car = await _carRepository.GetByIdAsync(id);
             if (car == null)
-                return NotFound();
+                return NotFound(value: new { message = "Car not found." });
 
             await _carRepository.DeleteAsync(car);
             return NoContent();
