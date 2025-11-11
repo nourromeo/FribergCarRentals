@@ -7,14 +7,10 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-
-// MVC Views
 builder.Services.AddControllersWithViews();
 
 // Session & HttpContext
 builder.Services.AddDistributedMemoryCache();
-
-// Give the frontend a distinct session cookie name to avoid collisions with API
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = "FribergCarRentals.Frontend.Session";
@@ -26,7 +22,6 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-// Authorized handler to include JWT token automatically
 builder.Services.AddTransient<AuthorizedHttpClientHandler>();
 
 // API base URL with Authorization handler
@@ -83,7 +78,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session middleware
 app.UseSession();
 
 app.UseAuthentication();

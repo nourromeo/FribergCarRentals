@@ -116,7 +116,6 @@ namespace FribergCarRentals.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            // ✅ إصلاح الخطأ الأصلي: تمرير ErrorViewModel دائمًا
             return View(new ErrorViewModel
             {
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
